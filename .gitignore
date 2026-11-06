@@ -1,0 +1,7 @@
+build/
+.venv/
+*.exe
+*.obj
+*.o
+memory/
+.context-bridge/

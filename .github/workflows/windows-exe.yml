@@ -1,0 +1,52 @@
+name: Windows exe
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and run the memory tests
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ cmake
+          cmake -S . -B build
+          cmake --build build
+          ./build/bridge_test
+
+  windows:
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build -A x64
+      - name: Build
+        run: cmake --build build --config Release
+      - name: Test
+        run: ./build/Release/bridge_test.exe
+      - name: Upload the exe artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: context-bridge-windows
+          path: build/Release/context-bridge.exe
+          if-no-files-found: error
+      - name: Attach the exe to the release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.1.0
+          name: Context Bridge 0.1.0
+          files: build/Release/context-bridge.exe
+          fail_on_unmatched_files: true
+          body: |
+            Windows build of Кортекс — мост контекста.
+            Copyright (c) 2026 ProtocolTeam (Zhandos). All rights reserved.
+            Viewing is allowed. Copying, modification, commercial use, and redistribution
+            require written permission from ProtocolTeam (Zhandos).

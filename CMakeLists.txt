@@ -1,0 +1,28 @@
+cmake_minimum_required(VERSION 3.20)
+cmake_policy(SET CMP0091 NEW)
+project(context-bridge LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    add_compile_options(/utf-8 /W4)
+else()
+    add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+add_executable(bridge_test tests/bridge_test.cpp src/bridge.cpp)
+target_include_directories(bridge_test PRIVATE src)
+
+if(WIN32)
+    add_executable(context-bridge WIN32 src/gui.cpp src/bridge.cpp src/http.cpp src/app.rc)
+    target_include_directories(context-bridge PRIVATE src)
+    target_link_libraries(context-bridge PRIVATE winhttp comctl32 shell32 ole32)
+    if(MSVC)
+        target_link_options(context-bridge PRIVATE "/ENTRY:wWinMainCRTStartup")
+    endif()
+    if(MINGW)
+        target_link_options(context-bridge PRIVATE -municode)
+    endif()
+endif()
